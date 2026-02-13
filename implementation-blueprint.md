@@ -18,6 +18,7 @@ Use this structure:
 │  ├─ safety.html
 │  ├─ assets/
 │  │  ├─ app.js
+│  │  ├─ memorial.js
 │  │  └─ styles.css
 │  └─ memorial/
 │     └─ names.json                # generated offline from verified records

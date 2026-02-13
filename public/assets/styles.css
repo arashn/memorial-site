@@ -1,0 +1,82 @@
+:root {
+  color-scheme: light;
+  --bg: #f4f1ec;
+  --panel: #fffaf5;
+  --text: #221812;
+  --muted: #6d5b4d;
+  --accent: #8a261a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, #ffffff 0%, var(--bg) 45%, #ebe4db 100%);
+}
+
+.container {
+  max-width: 760px;
+  margin: 2rem auto;
+  background: var(--panel);
+  border: 1px solid #e6dbcd;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+label {
+  display: block;
+  margin-top: 1rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+input,
+textarea,
+button {
+  width: 100%;
+  padding: 0.65rem;
+  border: 1px solid #cab8a8;
+  border-radius: 8px;
+  font: inherit;
+}
+
+button {
+  margin-top: 1rem;
+  color: #fff;
+  background: var(--accent);
+  border: 0;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.status {
+  margin-top: 0.75rem;
+  min-height: 1rem;
+}
+
+.hidden {
+  position: absolute;
+  left: -10000px;
+}
+
+@media (max-width: 640px) {
+  .container {
+    margin: 1rem;
+  }
+}

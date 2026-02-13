@@ -1,0 +1,13 @@
+# Node
+node_modules/
+
+# Wrangler
+.worker/
+.wrangler/
+
+# Environment
+.env
+.env.*
+
+# macOS
+.DS_Store

@@ -1,0 +1,24 @@
+name = "secure-memorial-intake"
+main = "src/index.ts"
+compatibility_date = "2026-02-13"
+workers_dev = true
+
+[vars]
+MAX_BODY_BYTES = "71680"
+RATE_LIMIT_PER_MIN = "5"
+RATE_LIMIT_BURST = "10"
+REPLAY_TTL_SECONDS = "86400"
+ENVIRONMENT = "production"
+PUBLIC_KEYSET_JSON = '{"active":"k-2026-01","keys":{"k-2026-01":"REPLACE_WITH_BASE64_PUBLIC_KEY"}}'
+
+[[r2_buckets]]
+binding = "SUBMISSIONS_BUCKET"
+bucket_name = "submissions-encrypted-prod"
+
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+[[kv_namespaces]]
+binding = "REPLAY_KV"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
