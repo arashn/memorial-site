@@ -4,5 +4,6 @@
   "submit_accepted": "Submission accepted and queued for review.",
   "too_many_requests": "Too many requests. Please wait and try again.",
   "submit_failed": "Submission failed. Please try again later.",
+  "encryption_unavailable": "Secure encryption is unavailable in this browser. Please use a modern, updated browser.",
   "memorial_unavailable": "Memorial list is temporarily unavailable."
 }

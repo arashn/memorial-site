@@ -2,8 +2,8 @@ import { getLocaleFromPath, loadMessages } from "/assets/i18n.js";
 
 const API_URL = "/api/v1/submissions";
 const FORM_VERSION = "2026-01-01";
-const KEY_ID = "k-2026-01";
-const ENC_ALG = "x25519-xsalsa20-poly1305";
+const ENC_ALG = "x25519-aes-256-gcm-v1";
+const KEYSET_URL = "/keys/public-keyset.json";
 
 const form = document.getElementById("submission-form");
 const statusEl = document.getElementById("status");
@@ -13,7 +13,8 @@ let messages = {
   complete_turnstile: "Complete the anti-bot check and try again.",
   submit_accepted: "Submission accepted and queued for review.",
   too_many_requests: "Too many requests. Please wait and try again.",
-  submit_failed: "Submission failed. Please try again later."
+  submit_failed: "Submission failed. Please try again later.",
+  encryption_unavailable: "Secure encryption is unavailable in this browser. Please use a modern, updated browser."
 };
 
 function setStatus(message) {
@@ -37,9 +38,83 @@ function validatePayload(payload) {
   return true;
 }
 
-function encryptPayload(plaintext) {
-  void plaintext;
-  throw new Error("Client-side encryption is not implemented. Deploy only after replacing this function.");
+function b64ToBytes(value) {
+  const clean = value.replace(/\s+/g, "");
+  const raw = atob(clean);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i += 1) {
+    bytes[i] = raw.charCodeAt(i);
+  }
+  return bytes;
+}
+
+function bytesToB64(bytes) {
+  let binary = "";
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+  return btoa(binary);
+}
+
+async function loadKeyset() {
+  const res = await fetch(KEYSET_URL, { cache: "no-store" });
+  if (!res.ok) throw new Error("keyset_fetch_failed");
+  const data = await res.json();
+  if (!data || typeof data !== "object" || typeof data.active !== "string" || !data.keys || typeof data.keys !== "object") {
+    throw new Error("keyset_invalid");
+  }
+  const keyId = data.active;
+  const keyB64 = data.keys[keyId];
+  if (typeof keyB64 !== "string" || !keyB64) throw new Error("key_not_found");
+  return { keyId, keyB64 };
+}
+
+async function encryptPayload(plaintext, recipientPublicKeyB64) {
+  if (!crypto?.subtle) throw new Error("subtle_unavailable");
+
+  const recipientPublicKeyRaw = b64ToBytes(recipientPublicKeyB64);
+  if (recipientPublicKeyRaw.length !== 32) throw new Error("invalid_recipient_key_length");
+
+  const recipientPublicKey = await crypto.subtle.importKey(
+    "raw",
+    recipientPublicKeyRaw,
+    { name: "X25519" },
+    false,
+    []
+  );
+
+  const ephemeral = await crypto.subtle.generateKey({ name: "X25519" }, true, ["deriveBits"]);
+
+  const sharedSecret = await crypto.subtle.deriveBits(
+    { name: "X25519", public: recipientPublicKey },
+    ephemeral.privateKey,
+    256
+  );
+
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    sharedSecret,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"]
+  );
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const plaintextBytes = new TextEncoder().encode(JSON.stringify(plaintext));
+
+  const ciphertext = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    aesKey,
+    plaintextBytes
+  );
+
+  const ephemeralPubkeyRaw = await crypto.subtle.exportKey("raw", ephemeral.publicKey);
+
+  return {
+    ciphertext_b64: bytesToB64(new Uint8Array(ciphertext)),
+    nonce_b64: bytesToB64(iv),
+    ephemeral_pubkey_b64: bytesToB64(new Uint8Array(ephemeralPubkeyRaw))
+  };
 }
 
 try {
@@ -76,12 +151,14 @@ form?.addEventListener("submit", async (event) => {
       return;
     }
 
-    const envelope = encryptPayload(payload);
+    const { keyId, keyB64 } = await loadKeyset();
+    const envelope = await encryptPayload(payload, keyB64);
+
     const body = {
       version: FORM_VERSION,
       ...envelope,
       enc_alg: ENC_ALG,
-      key_id: KEY_ID,
+      key_id: keyId,
       turnstile_token: turnstileToken,
       client_ts: new Date().toISOString(),
       honeypot: form.website.value || ""
@@ -106,8 +183,12 @@ form?.addEventListener("submit", async (event) => {
     }
 
     setStatus(messages.submit_failed);
-  } catch {
-    setStatus(messages.submit_failed);
+  } catch (error) {
+    if (error instanceof Error && /subtle_unavailable|invalid_recipient_key_length|NotSupportedError|OperationError/i.test(error.message)) {
+      setStatus(messages.encryption_unavailable);
+    } else {
+      setStatus(messages.submit_failed);
+    }
   } finally {
     button.disabled = false;
   }

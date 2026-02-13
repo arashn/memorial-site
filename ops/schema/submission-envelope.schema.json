@@ -19,7 +19,7 @@
     "ciphertext_b64": { "type": "string", "minLength": 1, "maxLength": 65536, "pattern": "^[A-Za-z0-9+/=]+$" },
     "nonce_b64": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9+/=]+$" },
     "ephemeral_pubkey_b64": { "type": "string", "minLength": 1, "maxLength": 128, "pattern": "^[A-Za-z0-9+/=]+$" },
-    "enc_alg": { "enum": ["x25519-xsalsa20-poly1305"] },
+    "enc_alg": { "enum": ["x25519-aes-256-gcm-v1"] },
     "key_id": { "type": "string", "pattern": "^k-[0-9]{4}-[0-9]{2}$" },
     "turnstile_token": { "type": "string", "minLength": 1, "maxLength": 4096 },
     "client_ts": { "type": "string", "format": "date-time" },

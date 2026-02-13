@@ -29,6 +29,8 @@ Use this structure:
 │  ├─ i18n/
 │  │  ├─ en.json
 │  │  └─ fa.json
+│  ├─ keys/
+│  │  └─ public-keyset.json
 │  ├─ assets/
 │  │  ├─ app.js
 │  │  ├─ i18n.js
@@ -52,7 +54,8 @@ Use this structure:
 │  │  └─ key-rotation.md
 │  └─ scripts/
 │     ├─ decrypt-offline.md
-│     └─ generate-memorial.md
+│     ├─ generate-memorial.md
+│     └─ generate-x25519-keypair.mjs
 └─ .github/
    └─ workflows/
       └─ deploy.yml
@@ -83,7 +86,7 @@ Request: `POST /api/v1/submissions`
   "ciphertext_b64": "BASE64_CIPHERTEXT",
   "nonce_b64": "BASE64_NONCE",
   "ephemeral_pubkey_b64": "BASE64_EPHEMERAL_PUBKEY",
-  "enc_alg": "x25519-xsalsa20-poly1305",
+  "enc_alg": "x25519-aes-256-gcm-v1",
   "key_id": "k-2026-01",
   "turnstile_token": "TOKEN",
   "client_ts": "2026-02-13T18:30:00Z",
@@ -94,8 +97,8 @@ Request: `POST /api/v1/submissions`
 Field rules:
 - `version`: exact string, reject unknown versions
 - `ciphertext_b64`: required, base64, max 64 KB encoded
-- `nonce_b64`: required, base64, exact length for chosen algorithm
-- `ephemeral_pubkey_b64`: required, base64, exact key length
+- `nonce_b64`: required, base64, must decode to 12 bytes (AES-GCM IV)
+- `ephemeral_pubkey_b64`: required, base64, must decode to 32 bytes (X25519 public key)
 - `enc_alg`: must equal allowed value list
 - `key_id`: required, must match active/previous allowed keys
 - `turnstile_token`: required, non-empty

@@ -24,7 +24,7 @@ type SubmissionEnvelope = {
 };
 
 const FORM_VERSION = "2026-01-01";
-const ACCEPTED_ALGS = new Set(["x25519-xsalsa20-poly1305"]);
+const ACCEPTED_ALGS = new Set(["x25519-aes-256-gcm-v1"]);
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -135,8 +135,10 @@ function validateEnvelope(body: SubmissionEnvelope, keysetJson: string): string 
   if (!body || typeof body !== "object") return "invalid_body";
   if (body.version !== FORM_VERSION) return "invalid_version";
   if (!isBase64(body.ciphertext_b64) || body.ciphertext_b64.length > 65536) return "invalid_ciphertext";
-  if (!isBase64(body.nonce_b64)) return "invalid_nonce";
-  if (!isBase64(body.ephemeral_pubkey_b64)) return "invalid_ephemeral_pubkey";
+  if (!isBase64(body.nonce_b64) || base64DecodedLength(body.nonce_b64) !== 12) return "invalid_nonce";
+  if (!isBase64(body.ephemeral_pubkey_b64) || base64DecodedLength(body.ephemeral_pubkey_b64) !== 32) {
+    return "invalid_ephemeral_pubkey";
+  }
   if (!ACCEPTED_ALGS.has(body.enc_alg)) return "invalid_enc_alg";
   if (!body.turnstile_token || typeof body.turnstile_token !== "string") return "invalid_turnstile_token";
   if (typeof body.honeypot !== "string") return "invalid_honeypot";
@@ -152,6 +154,9 @@ function validateEnvelope(body: SubmissionEnvelope, keysetJson: string): string 
 
   if (!keyset.keys || typeof keyset.keys !== "object") return "invalid_keyset";
   if (!body.key_id || !(body.key_id in keyset.keys)) return "invalid_key_id";
+  if (typeof keyset.keys[body.key_id] !== "string" || base64DecodedLength(keyset.keys[body.key_id]) !== 32) {
+    return "invalid_keyset";
+  }
   return null;
 }
 
@@ -206,6 +211,14 @@ function objectKeyFromDate(isoTime: string, submissionId: string): string {
 function isBase64(value: unknown): boolean {
   if (typeof value !== "string" || value.length === 0) return false;
   return /^[A-Za-z0-9+/=]+$/.test(value);
+}
+
+function base64DecodedLength(value: string): number {
+  try {
+    return atob(value).length;
+  } catch {
+    return -1;
+  }
 }
 
 function isFreshTimestamp(value: unknown, skewMs: number): boolean {
