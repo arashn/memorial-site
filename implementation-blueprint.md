@@ -1,0 +1,308 @@
+# Implementation Blueprint: Secure Memorial Name Collection Site
+
+## Scope
+This blueprint defines a concrete, minimal implementation for this repository:
+- Static public site with 2 pages: `/submit` and `/memorial`
+- One intake API: `POST /api/v1/submissions`
+- Client-side encryption before network transmission
+- No plaintext victim data stored server-side
+
+## 1) Repository Layout
+Use this structure:
+
+```text
+.
+├─ public/
+│  ├─ submit.html
+│  ├─ memorial.html
+│  ├─ safety.html
+│  ├─ assets/
+│  │  ├─ app.js
+│  │  └─ styles.css
+│  └─ memorial/
+│     └─ names.json                # generated offline from verified records
+├─ worker/
+│  ├─ src/
+│  │  └─ index.ts                  # Cloudflare Worker intake API
+│  ├─ wrangler.toml
+│  └─ package.json
+├─ ops/
+│  ├─ schema/
+│  │  ├─ submission-envelope.schema.json
+│  │  └─ memorial-entry.schema.json
+│  ├─ keys/
+│  │  └─ public-key.json           # public key only (safe to publish)
+│  ├─ runbooks/
+│  │  ├─ incident-response.md
+│  │  └─ key-rotation.md
+│  └─ scripts/
+│     ├─ decrypt-offline.md
+│     └─ generate-memorial.md
+└─ .github/
+   └─ workflows/
+      └─ deploy.yml
+```
+
+## 2) Exact Public Endpoints
+Serve these static routes:
+- `GET /submit` -> `public/submit.html`
+- `GET /memorial` -> `public/memorial.html`
+- `GET /safety` -> `public/safety.html`
+- `GET /memorial/names.json` -> vetted, publish-safe records only
+
+API endpoints (Worker):
+- `POST /api/v1/submissions` (accept encrypted envelopes)
+- `GET /api/v1/healthz` (returns static health object, no secrets)
+
+Do not expose any admin endpoints publicly.
+
+## 3) Submission Contract (Exact Fields)
+The client sends only encrypted payload plus anti-abuse proof.
+
+Request: `POST /api/v1/submissions`
+`Content-Type: application/json`
+
+```json
+{
+  "version": "2026-01-01",
+  "ciphertext_b64": "BASE64_CIPHERTEXT",
+  "nonce_b64": "BASE64_NONCE",
+  "ephemeral_pubkey_b64": "BASE64_EPHEMERAL_PUBKEY",
+  "enc_alg": "x25519-xsalsa20-poly1305",
+  "key_id": "k-2026-01",
+  "turnstile_token": "TOKEN",
+  "client_ts": "2026-02-13T18:30:00Z",
+  "honeypot": ""
+}
+```
+
+Field rules:
+- `version`: exact string, reject unknown versions
+- `ciphertext_b64`: required, base64, max 64 KB encoded
+- `nonce_b64`: required, base64, exact length for chosen algorithm
+- `ephemeral_pubkey_b64`: required, base64, exact key length
+- `enc_alg`: must equal allowed value list
+- `key_id`: required, must match active/previous allowed keys
+- `turnstile_token`: required, non-empty
+- `client_ts`: RFC3339 UTC, max skew 10 minutes
+- `honeypot`: must be empty string
+
+Response codes:
+- `202 Accepted` -> valid and queued
+- `400 Bad Request` -> schema/type/size/version failures
+- `401 Unauthorized` -> Turnstile verification failed
+- `409 Conflict` -> replay/idempotency violation
+- `413 Payload Too Large` -> body too large
+- `415 Unsupported Media Type` -> non-JSON
+- `429 Too Many Requests` -> rate limit exceeded
+- `500 Internal Server Error` -> generic failure (never leak stack traces)
+
+Example `202` response:
+
+```json
+{
+  "status": "accepted",
+  "submission_id": "sub_01JABCDEF...",
+  "received_at": "2026-02-13T18:30:01Z"
+}
+```
+
+## 4) Plaintext Payload (Encrypted Client-Side)
+This object exists only in browser memory before encryption:
+
+```json
+{
+  "victim_name": "string, required, 1-120 chars",
+  "date_of_death": "YYYY-MM-DD, optional",
+  "location": "string, optional, <= 120 chars",
+  "description": "string, optional, <= 600 chars",
+  "evidence_refs": ["optional array of opaque references"],
+  "submitter_contact": null
+}
+```
+
+Rules:
+- Do not include submitter identity by default.
+- Trim all fields, normalize Unicode, reject control chars.
+- Enforce client-side limits before encryption and server-side envelope limits after encryption.
+
+## 5) API Security Controls (Exact)
+Apply these controls in Worker:
+- Allow methods: `POST` for `/api/v1/submissions`, `GET` for `/api/v1/healthz`
+- Reject everything else with `405`.
+- Enforce `Content-Type: application/json`.
+- Max request body: `70 KB`.
+- Per-IP rate limit: `5/min`, burst `10`, and global adaptive rules.
+- Verify Turnstile token server-side for every submission.
+- Add replay protection using hash of `ciphertext_b64 + nonce_b64` with TTL 24h.
+- Write only encrypted envelope + minimal metadata:
+  - `received_at`
+  - `submission_id`
+  - `key_id`
+  - abuse score/rate-limit bucket
+
+Never persist:
+- Raw IP (if possible), user-agent full string, plaintext form data.
+
+## 6) Required Response Headers
+Set on all static pages and API responses:
+
+```text
+Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Referrer-Policy: no-referrer
+Permissions-Policy: geolocation=(), microphone=(), camera=()
+Cross-Origin-Opener-Policy: same-origin
+Cross-Origin-Resource-Policy: same-origin
+Content-Security-Policy: default-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'
+Cache-Control: no-store
+```
+
+Notes:
+- For `/memorial/names.json`, you may use short cache (e.g. `public, max-age=300`) for availability.
+- Keep CSP strict; avoid inline scripts/styles.
+
+## 7) Cloudflare Configuration (Concrete)
+Cloudflare DNS/Zone:
+- Enable DNSSEC.
+- Enable Always Use HTTPS.
+- Enable HTTP Strict Transport Security.
+- Set SSL/TLS mode to `Full (strict)`.
+
+WAF and DDoS:
+- Enable managed WAF rules.
+- Add custom rule for `/api/v1/submissions`:
+  - challenge suspicious ASNs/countries as needed
+  - block requests with missing/invalid content type
+- Enable bot protection (supervised mode first, then tighten).
+
+Turnstile:
+- Place widget on submit page.
+- Validate token only on server using secret key.
+
+R2 (or equivalent object storage):
+- Bucket: `submissions-encrypted-prod`
+- Object key format: `YYYY/MM/DD/<submission_id>.json`
+- Server-side encryption enabled.
+- Lifecycle policy: move old objects to cheaper class if needed.
+
+## 8) Environment Variables (Worker)
+Required secrets/config:
+
+```text
+TURNSTILE_SECRET=...
+PUBLIC_KEYSET_JSON={"active":"k-2026-01","keys":{"k-2026-01":"..."}}
+MAX_BODY_BYTES=71680
+RATE_LIMIT_PER_MIN=5
+RATE_LIMIT_BURST=10
+REPLAY_TTL_SECONDS=86400
+ENVIRONMENT=production
+```
+
+Non-secret config can live in `wrangler.toml`; secrets must be stored with `wrangler secret put`.
+
+## 9) Validation Schemas
+Define two JSON Schemas in `ops/schema/`:
+- `submission-envelope.schema.json`
+  - validates the exact API request contract above
+- `memorial-entry.schema.json`
+  - validates public names file entries
+
+`/memorial/names.json` entry shape:
+
+```json
+{
+  "name": "string",
+  "date": "YYYY-MM-DD or null",
+  "location": "string or null",
+  "notes": "short string or null",
+  "source_count": 1
+}
+```
+
+Do not publish contact details or raw submitter statements verbatim.
+
+## 10) Logging and Privacy
+Log only operational metrics:
+- request timestamp
+- route
+- status code
+- coarse abuse/rate-limit result
+- anonymous request fingerprint hash (rotating salt)
+
+Do not log:
+- submission ciphertext (unless required for debugging and only temporarily)
+- Turnstile token
+- raw IP/user-agent where avoidable
+
+Set log retention windows explicitly (for example: 7-14 days for edge logs).
+
+## 11) Offline Review Workflow
+1. Export encrypted envelopes from storage to offline review machine.
+2. Decrypt using private key stored off-server.
+3. Validate decrypted payload against internal plaintext schema.
+4. Deduplicate and verify claims.
+5. Approve subset for publication.
+6. Generate `public/memorial/names.json` from approved set.
+7. Commit and deploy static update.
+
+Controls:
+- Two-person approval for publish step.
+- Signed release tags for memorial updates.
+- Keep decryption environment separate from browsing/email.
+
+## 12) Concrete Deployment Checklist
+Infrastructure bootstrapping:
+- [ ] Register domain with registry lock and hardware-key MFA.
+- [ ] Configure Cloudflare zone, DNSSEC, TLS strict mode, HSTS.
+- [ ] Create Cloudflare Pages project for static site.
+- [ ] Create Worker service for `/api/v1/*`.
+- [ ] Create R2 bucket `submissions-encrypted-prod`.
+
+Application setup:
+- [ ] Add submit form with strict client validation.
+- [ ] Implement client encryption using published public key (`key_id` pinned).
+- [ ] Add Turnstile widget on submit page.
+- [ ] Implement Worker request schema validation.
+- [ ] Implement server-side Turnstile verification.
+- [ ] Implement replay detection + rate limiting.
+- [ ] Persist encrypted envelope objects only.
+
+Security hardening:
+- [ ] Set all required security headers.
+- [ ] Enforce method and content-type allowlists.
+- [ ] Disable directory listing and default error leakage.
+- [ ] Remove third-party scripts and analytics.
+- [ ] Configure WAF rules and bot management.
+
+Operations:
+- [ ] Write incident runbooks (DDoS, credential compromise, key compromise).
+- [ ] Test backup/export/restore of encrypted envelope store.
+- [ ] Test key-rotation process with staging keyset.
+- [ ] Configure alerting for `429`, `5xx`, WAF spikes, and sudden traffic anomalies.
+- [ ] Run tabletop exercise before public launch.
+
+Launch gates (must pass):
+- [ ] External security review completed.
+- [ ] Pen-test of API and deployment pipeline completed.
+- [ ] Dry-run of full submit -> decrypt -> verify -> publish cycle completed.
+- [ ] On-call owner and emergency contacts documented.
+
+## 13) Minimal Acceptance Tests
+- `POST /api/v1/submissions` valid envelope returns `202`.
+- Invalid Turnstile token returns `401`.
+- Oversized request returns `413`.
+- Missing required field returns `400`.
+- Replay envelope returns `409`.
+- Burst submissions trigger `429`.
+- Static pages return required security headers.
+- `memorial/names.json` validates against public schema.
+
+## 14) Non-Goals (for launch)
+- User accounts
+- Searchable admin dashboard
+- Rich media upload pipeline
+- Real-time collaboration tools
+
+Keeping these out of scope reduces attack surface substantially.
