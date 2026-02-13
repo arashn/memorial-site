@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ثبت نام</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+  <main class="container">
+    <nav class="top-nav" aria-label="Primary">
+      <a href="/fa/submit.html">ثبت</a>
+      <a href="/fa/memorial.html">یادبود</a>
+      <a href="/fa/safety.html">ایمنی</a>
+      <span class="spacer"></span>
+      <a href="/en/submit.html" lang="en" hreflang="en">English</a>
+    </nav>
+
+    <h1>ثبت نام قربانی</h1>
+    <p class="muted">فقط اطلاعاتی را ثبت کنید که از صحت آن مطمئن هستید. لطفاً اطلاعات تماس شخصی خود را وارد نکنید.</p>
+
+    <form id="submission-form" novalidate>
+      <label for="victim_name">نام (اجباری)</label>
+      <input id="victim_name" name="victim_name" maxlength="120" required>
+
+      <label for="date_of_death">تاریخ کشته شدن (اختیاری)</label>
+      <input id="date_of_death" name="date_of_death" type="date">
+
+      <label for="location">محل (اختیاری)</label>
+      <input id="location" name="location" maxlength="120">
+
+      <label for="description">توضیح کوتاه (اختیاری)</label>
+      <textarea id="description" name="description" maxlength="600" rows="6"></textarea>
+
+      <input id="honeypot" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+      <div class="cf-turnstile" data-sitekey="REPLACE_WITH_TURNSTILE_SITE_KEY"></div>
+
+      <button type="submit">ارسال امن</button>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="/assets/app.js" type="module"></script>
+</body>
+</html>

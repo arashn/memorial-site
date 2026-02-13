@@ -1,0 +1,8 @@
+{
+  "submit_rejected": "Submission rejected: check required fields and length limits.",
+  "complete_turnstile": "Complete the anti-bot check and try again.",
+  "submit_accepted": "Submission accepted and queued for review.",
+  "too_many_requests": "Too many requests. Please wait and try again.",
+  "submit_failed": "Submission failed. Please try again later.",
+  "memorial_unavailable": "Memorial list is temporarily unavailable."
+}

@@ -1,3 +1,5 @@
+import { getLocaleFromPath, loadMessages } from "/assets/i18n.js";
+
 const API_URL = "/api/v1/submissions";
 const FORM_VERSION = "2026-01-01";
 const KEY_ID = "k-2026-01";
@@ -5,6 +7,14 @@ const ENC_ALG = "x25519-xsalsa20-poly1305";
 
 const form = document.getElementById("submission-form");
 const statusEl = document.getElementById("status");
+const locale = getLocaleFromPath();
+let messages = {
+  submit_rejected: "Submission rejected: check required fields and length limits.",
+  complete_turnstile: "Complete the anti-bot check and try again.",
+  submit_accepted: "Submission accepted and queued for review.",
+  too_many_requests: "Too many requests. Please wait and try again.",
+  submit_failed: "Submission failed. Please try again later."
+};
 
 function setStatus(message) {
   statusEl.textContent = message;
@@ -32,6 +42,12 @@ function encryptPayload(plaintext) {
   throw new Error("Client-side encryption is not implemented. Deploy only after replacing this function.");
 }
 
+try {
+  messages = { ...messages, ...(await loadMessages(locale)) };
+} catch {
+  // Keep default English strings when locale file is unavailable.
+}
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
   setStatus("");
@@ -50,13 +66,13 @@ form?.addEventListener("submit", async (event) => {
     };
 
     if (!validatePayload(payload)) {
-      setStatus("Submission rejected: check required fields and length limits.");
+      setStatus(messages.submit_rejected);
       return;
     }
 
     const turnstileToken = getTurnstileToken();
     if (!turnstileToken) {
-      setStatus("Complete the anti-bot check and try again.");
+      setStatus(messages.complete_turnstile);
       return;
     }
 
@@ -80,18 +96,18 @@ form?.addEventListener("submit", async (event) => {
     if (res.status === 202) {
       form.reset();
       if (window.turnstile) window.turnstile.reset();
-      setStatus("Submission accepted and queued for review.");
+      setStatus(messages.submit_accepted);
       return;
     }
 
     if (res.status === 429) {
-      setStatus("Too many requests. Please wait and try again.");
+      setStatus(messages.too_many_requests);
       return;
     }
 
-    setStatus("Submission failed. Please try again later.");
+    setStatus(messages.submit_failed);
   } catch {
-    setStatus("Submission failed. Please try again later.");
+    setStatus(messages.submit_failed);
   } finally {
     button.disabled = false;
   }

@@ -6,6 +6,7 @@ This blueprint defines a concrete, minimal implementation for this repository:
 - One intake API: `POST /api/v1/submissions`
 - Client-side encryption before network transmission
 - No plaintext victim data stored server-side
+- Route-based localization: `/en/*` and `/fa/*` with no third-party translation services
 
 ## 1) Repository Layout
 Use this structure:
@@ -13,11 +14,24 @@ Use this structure:
 ```text
 .
 ├─ public/
-│  ├─ submit.html
-│  ├─ memorial.html
-│  ├─ safety.html
+│  ├─ index.html
+│  ├─ submit.html                  # redirect to /en/submit.html
+│  ├─ memorial.html                # redirect to /en/memorial.html
+│  ├─ safety.html                  # redirect to /en/safety.html
+│  ├─ en/
+│  │  ├─ submit.html
+│  │  ├─ memorial.html
+│  │  └─ safety.html
+│  ├─ fa/
+│  │  ├─ submit.html
+│  │  ├─ memorial.html
+│  │  └─ safety.html
+│  ├─ i18n/
+│  │  ├─ en.json
+│  │  └─ fa.json
 │  ├─ assets/
 │  │  ├─ app.js
+│  │  ├─ i18n.js
 │  │  ├─ memorial.js
 │  │  └─ styles.css
 │  └─ memorial/
