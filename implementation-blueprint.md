@@ -8,6 +8,20 @@ This blueprint defines a concrete, minimal implementation for this repository:
 - No plaintext victim data stored server-side
 - Route-based localization: `/en/*` and `/fa/*` with no third-party translation services
 
+## Current Deployment State (As of February 13, 2026)
+- Completed:
+  - Domain registered with registry lock.
+  - Cloudflare zone configured with DNSSEC and TLS strict mode.
+  - Cloudflare Pages project deployed for static site.
+  - Worker service deployed for `/api/v1/*`.
+  - R2 bucket created (`memorial-site-submissions-encrypted-prod`).
+  - Submit form and client-side encryption implemented.
+  - Turnstile widget added and server-side verification implemented.
+- Pending / partial:
+  - Hardware-key MFA for privileged accounts (not yet enabled).
+  - HSTS at zone level (not yet enabled).
+  - Memorial publishing pipeline remains paused (memorial page disabled).
+
 ## 1) Repository Layout
 Use this structure:
 
@@ -274,31 +288,33 @@ Controls:
 - Keep decryption environment separate from browsing/email.
 
 ## 12) Concrete Deployment Checklist
+Status updated: February 13, 2026.
+
 Infrastructure bootstrapping:
-- [ ] Register domain with registry lock and hardware-key MFA.
-- [ ] Configure Cloudflare zone, DNSSEC, TLS strict mode, HSTS.
-- [ ] Create Cloudflare Pages project for static site.
-- [ ] Create Worker service for `/api/v1/*`.
-- [ ] Create R2 bucket `submissions-encrypted-prod`.
+- [ ] Register domain with registry lock and hardware-key MFA (partial: registry lock done; hardware-key MFA pending).
+- [ ] Configure Cloudflare zone, DNSSEC, TLS strict mode, HSTS (partial: DNSSEC + TLS strict done; HSTS pending).
+- [x] Create Cloudflare Pages project for static site.
+- [x] Create Worker service for `/api/v1/*`.
+- [x] Create R2 bucket `memorial-site-submissions-encrypted-prod`.
 
 Application setup:
-- [ ] Add submit form with strict client validation.
-- [ ] Implement client encryption using published public key (`key_id` pinned).
-- [ ] Add Turnstile widget on submit page.
-- [ ] Implement Worker request schema validation.
-- [ ] Implement server-side Turnstile verification.
-- [ ] Implement replay detection + rate limiting.
-- [ ] Persist encrypted envelope objects only.
+- [x] Add submit form with strict client validation.
+- [x] Implement client encryption using published public key (`key_id` pinned).
+- [x] Add Turnstile widget on submit page.
+- [x] Implement Worker request schema validation.
+- [x] Implement server-side Turnstile verification.
+- [x] Implement replay detection + rate limiting.
+- [x] Persist encrypted envelope objects only.
 
 Security hardening:
-- [ ] Set all required security headers.
-- [ ] Enforce method and content-type allowlists.
+- [ ] Set all required security headers (partial: app headers configured; zone-level HSTS pending).
+- [x] Enforce method and content-type allowlists.
 - [ ] Disable directory listing and default error leakage.
 - [ ] Remove third-party scripts and analytics.
 - [ ] Configure WAF rules and bot management.
 
 Operations:
-- [ ] Write incident runbooks (DDoS, credential compromise, key compromise).
+- [x] Write incident runbooks (DDoS, credential compromise, key compromise).
 - [ ] Test backup/export/restore of encrypted envelope store.
 - [ ] Test key-rotation process with staging keyset.
 - [ ] Configure alerting for `429`, `5xx`, WAF spikes, and sudden traffic anomalies.

@@ -3,6 +3,20 @@
 ## Purpose
 Build a very simple website (one or two pages) for families and relatives of victims of the January 2026 Iran protests to submit names of people who were killed, injured, arrested/imprisoned, or missing/disappeared, while maximizing security under active hostile attack.
 
+## Current Deployment State (As of February 13, 2026)
+- Completed:
+  - Domain registered with registry lock.
+  - Cloudflare zone configured with DNSSEC and TLS strict mode.
+  - Cloudflare Pages project deployed for static site.
+  - Worker service deployed for `/api/v1/*`.
+  - R2 bucket created (`memorial-site-submissions-encrypted-prod`).
+  - Submit form and client-side encryption implemented.
+  - Turnstile widget added and server-side verification implemented.
+- Pending / partial:
+  - Hardware-key MFA for privileged accounts (not yet enabled).
+  - HSTS at zone level (not yet enabled).
+  - Memorial publishing pipeline remains paused (memorial page disabled).
+
 ## Executive Summary
 The safest design is **not** a traditional database-backed form app. Instead:
 - Use a static frontend for minimal attack surface.
@@ -156,18 +170,20 @@ If strong anonymous whistleblower workflows are needed immediately, consider dep
 These can reduce custom security engineering risk but increase operational complexity.
 
 ## Practical Implementation Checklist
-- [ ] Register domain and enable DNSSEC.
-- [ ] Set up static site hosting.
-- [ ] Implement client-side encryption in submit page.
-- [ ] Build minimal intake endpoint (`POST /submit`).
-- [ ] Enforce Turnstile server-side verification.
-- [ ] Add rate limits, schema validation, size limits.
-- [ ] Store only encrypted payloads.
-- [ ] Establish offline decryption + verification workflow.
-- [ ] Create static memorial generation pipeline.
-- [ ] Add security headers and hardening.
-- [ ] Enforce hardware-key MFA for all privileged accounts.
-- [ ] Write and test incident response runbook.
+Status updated: February 13, 2026.
+
+- [x] Register domain and enable DNSSEC.
+- [x] Set up static site hosting (Cloudflare Pages).
+- [x] Implement client-side encryption in submit page.
+- [x] Build minimal intake endpoint (`POST /api/v1/submissions`).
+- [x] Enforce Turnstile server-side verification.
+- [x] Add rate limits, schema validation, size limits.
+- [x] Store only encrypted payloads.
+- [x] Establish offline decryption + verification workflow.
+- [ ] Create static memorial generation pipeline (currently paused while memorial publishing is disabled).
+- [ ] Add security headers and hardening (partial: strong headers configured; zone-level HSTS still pending).
+- [ ] Enforce hardware-key MFA for all privileged accounts (pending).
+- [ ] Write and test incident response runbook (runbook drafted; testing pending).
 
 ## References
 - Cloudflare Pages limits: https://developers.cloudflare.com/pages/platform/limits/
