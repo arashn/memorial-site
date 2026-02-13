@@ -54,6 +54,7 @@ Use this structure:
 │  │  └─ key-rotation.md
 │  └─ scripts/
 │     ├─ decrypt-offline.md
+│     ├─ decrypt-offline.mjs
 │     ├─ generate-memorial.md
 │     └─ generate-x25519-keypair.mjs
 └─ .github/
