@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ثبت نام</title>
+  <title>ثبت پرونده</title>
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
@@ -16,14 +16,23 @@
       <a href="/en/submit.html" lang="en" hreflang="en">English</a>
     </nav>
 
-    <h1>ثبت نام قربانی</h1>
-    <p class="muted">فقط اطلاعاتی را ثبت کنید که از صحت آن مطمئن هستید. لطفاً اطلاعات تماس شخصی خود را وارد نکنید.</p>
+    <h1>ثبت پرونده</h1>
+    <p class="muted">این فرم فقط برای خانواده و بستگان است. فقط اطلاعاتی را ثبت کنید که از صحت آن مطمئن هستید و اطلاعات تماس شخصی خود را وارد نکنید.</p>
 
     <form id="submission-form" novalidate>
-      <label for="victim_name">نام (اجباری)</label>
+      <label for="victim_name">نام شخص (اجباری)</label>
       <input id="victim_name" name="victim_name" maxlength="120" required>
 
-      <label for="date_of_death">تاریخ کشته شدن (اختیاری)</label>
+      <label for="incident_type">وضعیت پرونده (اجباری)</label>
+      <select id="incident_type" name="incident_type" required>
+        <option value="">انتخاب وضعیت</option>
+        <option value="killed">جاویدان‌شده</option>
+        <option value="injured">مجروح</option>
+        <option value="arrested_or_imprisoned">بازداشت / زندانی</option>
+        <option value="missing_or_disappeared">مفقود / ناپدیدشده</option>
+      </select>
+
+      <label for="date_of_death">تاریخ واقعه (اختیاری)</label>
       <input id="date_of_death" name="date_of_death" type="date">
 
       <label for="location">محل (اختیاری)</label>

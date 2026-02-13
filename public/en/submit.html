@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Submit a Name</title>
+  <title>Submit a Case</title>
   <link rel="stylesheet" href="/assets/styles.css">
 </head>
 <body>
@@ -16,14 +16,23 @@
       <a href="/fa/submit.html" lang="fa" hreflang="fa">فارسی</a>
     </nav>
 
-    <h1>Submit a Name</h1>
-    <p class="muted">Only submit information you are confident is accurate. Do not include your personal contact details.</p>
+    <h1>Submit a Case</h1>
+    <p class="muted">This form is for family members and relatives only. Submit information only if you are confident it is accurate, and do not include your personal contact details.</p>
 
     <form id="submission-form" novalidate>
-      <label for="victim_name">Name (required)</label>
+      <label for="victim_name">Person name (required)</label>
       <input id="victim_name" name="victim_name" maxlength="120" required>
 
-      <label for="date_of_death">Date of death (optional)</label>
+      <label for="incident_type">Case status (required)</label>
+      <select id="incident_type" name="incident_type" required>
+        <option value="">Select status</option>
+        <option value="killed">Killed</option>
+        <option value="injured">Injured</option>
+        <option value="arrested_or_imprisoned">Arrested / Imprisoned</option>
+        <option value="missing_or_disappeared">Missing / Disappeared</option>
+      </select>
+
+      <label for="date_of_death">Date of incident (optional)</label>
       <input id="date_of_death" name="date_of_death" type="date">
 
       <label for="location">Location (optional)</label>

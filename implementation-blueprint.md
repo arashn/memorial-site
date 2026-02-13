@@ -132,6 +132,7 @@ This object exists only in browser memory before encryption:
 ```json
 {
   "victim_name": "string, required, 1-120 chars",
+  "incident_type": "required enum: killed | injured | arrested_or_imprisoned | missing_or_disappeared",
   "date_of_death": "YYYY-MM-DD, optional",
   "location": "string, optional, <= 120 chars",
   "description": "string, optional, <= 600 chars",
@@ -233,6 +234,7 @@ Define two JSON Schemas in `ops/schema/`:
 ```json
 {
   "name": "string",
+  "incident_type": "killed | injured | arrested_or_imprisoned | missing_or_disappeared",
   "date": "YYYY-MM-DD or null",
   "location": "string or null",
   "notes": "short string or null",

@@ -1,6 +1,7 @@
 [
   {
     "name": "Example Name",
+    "incident_type": "killed",
     "date": null,
     "location": null,
     "notes": null,

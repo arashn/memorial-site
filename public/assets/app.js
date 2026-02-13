@@ -33,6 +33,9 @@ function normalizeText(value, maxLen) {
 
 function validatePayload(payload) {
   if (!payload.victim_name || payload.victim_name.length > 120) return false;
+  if (!["killed", "injured", "arrested_or_imprisoned", "missing_or_disappeared"].includes(payload.incident_type)) {
+    return false;
+  }
   if (payload.location.length > 120) return false;
   if (payload.description.length > 600) return false;
   return true;
@@ -133,6 +136,7 @@ form?.addEventListener("submit", async (event) => {
   try {
     const payload = {
       victim_name: normalizeText(form.victim_name.value, 120),
+      incident_type: String(form.incident_type.value || ""),
       date_of_death: form.date_of_death.value || null,
       location: normalizeText(form.location.value, 120),
       description: normalizeText(form.description.value, 600),

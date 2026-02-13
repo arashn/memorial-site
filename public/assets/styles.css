@@ -65,6 +65,7 @@ label {
 }
 
 input,
+select,
 textarea,
 button {
   width: 100%;

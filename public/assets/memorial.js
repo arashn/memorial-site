@@ -3,7 +3,11 @@ import { getLocaleFromPath, loadMessages } from "/assets/i18n.js";
 const list = document.getElementById("memorial-list");
 const locale = getLocaleFromPath();
 let messages = {
-  memorial_unavailable: "Memorial list is temporarily unavailable."
+  memorial_unavailable: "Memorial list is temporarily unavailable.",
+  status_killed: "Killed",
+  status_injured: "Injured",
+  status_arrested_or_imprisoned: "Arrested / Imprisoned",
+  status_missing_or_disappeared: "Missing / Disappeared"
 };
 
 try {
@@ -19,9 +23,13 @@ try {
 
   for (const entry of names) {
     const item = document.createElement("li");
+    const incidentType = String(entry.incident_type || "");
+    const statusKey = `status_${incidentType}`;
+    const status = messages[statusKey] || incidentType;
+    const statusText = status ? ` - ${status}` : "";
     const date = entry.date ? ` (${entry.date})` : "";
     const location = entry.location ? `, ${entry.location}` : "";
-    item.textContent = `${entry.name}${date}${location}`;
+    item.textContent = `${entry.name}${statusText}${date}${location}`;
     list.appendChild(item);
   }
 } catch {

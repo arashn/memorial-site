@@ -5,9 +5,13 @@
   "items": {
     "type": "object",
     "additionalProperties": false,
-    "required": ["name", "date", "location", "notes", "source_count"],
+    "required": ["name", "incident_type", "date", "location", "notes", "source_count"],
     "properties": {
       "name": { "type": "string", "minLength": 1, "maxLength": 120 },
+      "incident_type": {
+        "type": "string",
+        "enum": ["killed", "injured", "arrested_or_imprisoned", "missing_or_disappeared"]
+      },
       "date": {
         "anyOf": [
           { "type": "null" },

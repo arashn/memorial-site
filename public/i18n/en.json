@@ -5,5 +5,9 @@
   "too_many_requests": "Too many requests. Please wait and try again.",
   "submit_failed": "Submission failed. Please try again later.",
   "encryption_unavailable": "Secure encryption is unavailable in this browser. Please use a modern, updated browser.",
-  "memorial_unavailable": "Memorial list is temporarily unavailable."
+  "memorial_unavailable": "Memorial list is temporarily unavailable.",
+  "status_killed": "Killed",
+  "status_injured": "Injured",
+  "status_arrested_or_imprisoned": "Arrested / Imprisoned",
+  "status_missing_or_disappeared": "Missing / Disappeared"
 }

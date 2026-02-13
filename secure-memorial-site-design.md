@@ -1,7 +1,7 @@
 # Secure Memorial Name Collection Website Design
 
 ## Purpose
-Build a very simple website (one or two pages) for families and friends of victims of the January 2026 Iran protests to submit names of people killed by the regime, while maximizing security under active hostile attack.
+Build a very simple website (one or two pages) for families and relatives of victims of the January 2026 Iran protests to submit names of people who were killed, injured, arrested/imprisoned, or missing/disappeared, while maximizing security under active hostile attack.
 
 ## Executive Summary
 The safest design is **not** a traditional database-backed form app. Instead:
