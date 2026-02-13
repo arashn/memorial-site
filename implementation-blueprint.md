@@ -290,7 +290,52 @@ Launch gates (must pass):
 - [ ] Dry-run of full submit -> decrypt -> verify -> publish cycle completed.
 - [ ] On-call owner and emergency contacts documented.
 
-## 13) Minimal Acceptance Tests
+## 13) Compliance and Assurance
+There is no single HIPAA-equivalent certification for this use case. Use a layered assurance model.
+
+Recommended baseline set:
+- `NIST CSF 2.0` for program-level governance and risk management.
+- `OWASP ASVS (Level 2 minimum, Level 3 for high-risk controls)` for application security requirements.
+- `CIS Controls v8` for technical baseline controls.
+- `ISO/IEC 27001` if formal ISMS certification is needed.
+- `SOC 2 Type II` if third-party assurance reports are required by partners/donors.
+- `ISO/IEC 27701` if you need stronger privacy program governance.
+- `FIPS 140-3` validated crypto modules only if regulator/partner policy requires it.
+
+Practical control mapping for this repo:
+- Governance and risk:
+  - [ ] Document and review threat model quarterly.
+  - [ ] Maintain risk register and treatment plan.
+  - [ ] Assign named security owner and incident commander backup.
+- Identity and access:
+  - [ ] Hardware security keys required for all privileged accounts.
+  - [ ] Least-privilege role separation (infra/reviewer/publisher).
+  - [ ] Quarterly access review and immediate deprovisioning process.
+- Data protection:
+  - [ ] Verify no plaintext victim submissions are stored server-side.
+  - [ ] Keep private decryption keys offline with split custody.
+  - [ ] Define and test key rotation at least every 6 months.
+- Application and infrastructure security:
+  - [ ] ASVS checklist completed and signed off before launch.
+  - [ ] WAF/rate-limit/anti-bot controls validated under load.
+  - [ ] Dependency and CI/CD hardening controls in place.
+- Monitoring and response:
+  - [ ] Alerting configured for auth anomalies, traffic spikes, and 5xx bursts.
+  - [ ] Incident response tabletop completed before launch and every 6 months.
+  - [ ] Post-incident review template and timeline capture process documented.
+- Independent validation:
+  - [ ] External penetration test completed before public launch.
+  - [ ] Critical findings remediated and retested.
+  - [ ] Annual reassessment scheduled.
+
+Evidence package to maintain:
+- Architecture diagrams and data-flow documents.
+- Threat model revisions and risk register.
+- Access-control reviews and MFA enforcement proof.
+- Vulnerability scan/pentest reports and remediation records.
+- Incident drill reports and runbook revision history.
+
+## 14) Minimal Acceptance Tests
 - `POST /api/v1/submissions` valid envelope returns `202`.
 - Invalid Turnstile token returns `401`.
 - Oversized request returns `413`.
@@ -300,7 +345,7 @@ Launch gates (must pass):
 - Static pages return required security headers.
 - `memorial/names.json` validates against public schema.
 
-## 14) Non-Goals (for launch)
+## 15) Non-Goals (for launch)
 - User accounts
 - Searchable admin dashboard
 - Rich media upload pipeline
