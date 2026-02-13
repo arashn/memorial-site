@@ -6,19 +6,6 @@ function getPathLocale() {
   return SUPPORTED.has(first) ? first : null;
 }
 
-function detectLocale() {
-  const langs = Array.isArray(navigator.languages) && navigator.languages.length
-    ? navigator.languages
-    : [navigator.language || "en"];
-
-  for (const lang of langs) {
-    const lower = String(lang || "").toLowerCase();
-    if (lower.startsWith("fa")) return "fa";
-    if (lower.startsWith("en")) return "en";
-  }
-  return "en";
-}
-
 function targetPath(locale) {
   return `/${locale}/submit.html`;
 }
@@ -41,9 +28,12 @@ function initManualPreferenceCapture() {
 }
 
 function run() {
-  if (!["/", "/index.html"].includes(window.location.pathname)) {
-    return;
+  const pathLocale = getPathLocale();
+  if (pathLocale && SUPPORTED.has(pathLocale)) {
+    localStorage.setItem(STORAGE_KEY, pathLocale);
   }
+
+  if (!["/", "/index.html"].includes(window.location.pathname)) return;
 
   initManualPreferenceCapture();
 
@@ -67,15 +57,9 @@ function run() {
     return;
   }
 
-  const pathLocale = getPathLocale();
-  if (pathLocale && SUPPORTED.has(pathLocale)) {
-    localStorage.setItem(STORAGE_KEY, pathLocale);
-    return;
-  }
-
-  const locale = detectLocale();
-  localStorage.setItem(STORAGE_KEY, locale);
-  redirectToLocale(locale);
+  // Default locale when no explicit preference exists.
+  localStorage.setItem(STORAGE_KEY, "fa");
+  redirectToLocale("fa");
 }
 
 run();
