@@ -41,7 +41,7 @@ Use this structure:
 ├─ worker/
 │  ├─ src/
 │  │  └─ index.ts                  # Cloudflare Worker intake API
-│  ├─ wrangler.toml
+│  ├─ wrangler.jsonc
 │  └─ package.json
 ├─ ops/
 │  ├─ schema/
@@ -219,7 +219,7 @@ REPLAY_TTL_SECONDS=86400
 ENVIRONMENT=production
 ```
 
-Non-secret config can live in `wrangler.toml`; secrets must be stored with `wrangler secret put`.
+Non-secret config can live in `wrangler.jsonc`; secrets must be stored with `wrangler secret put`.
 
 ## 9) Validation Schemas
 Define two JSON Schemas in `ops/schema/`:
