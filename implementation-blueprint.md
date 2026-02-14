@@ -147,7 +147,9 @@ This object exists only in browser memory before encryption:
 {
   "victim_name": "string, required, 1-120 chars",
   "incident_type": "required enum: killed | injured | arrested_or_imprisoned | missing_or_disappeared",
-  "date_of_death": "YYYY-MM-DD, optional",
+  "date_of_death": "YYYY-MM-DD, optional (legacy alias of Gregorian incident date)",
+  "date_of_incident_gregorian": "YYYY-MM-DD, optional",
+  "date_of_incident_jalali": "YYYY/MM/DD, optional",
   "location": "string, optional, <= 120 chars",
   "description": "string, optional, <= 600 chars",
   "evidence_refs": ["optional array of opaque references"],

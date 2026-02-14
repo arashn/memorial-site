@@ -33,8 +33,17 @@
         <option value="missing_or_disappeared">مفقود / ناپدیدشده</option>
       </select>
 
-      <label for="date_of_death">تاریخ واقعه (اختیاری)</label>
-      <input id="date_of_death" name="date_of_death" type="date">
+      <label for="date_of_death">تاریخ واقعه (اختیاری - تقویم شمسی)</label>
+      <input
+        id="date_of_death"
+        name="date_of_death"
+        type="text"
+        dir="ltr"
+        inputmode="numeric"
+        placeholder="1404/11/25"
+        pattern="^[0-9۰-۹]{4}/[0-9۰-۹]{1,2}/[0-9۰-۹]{1,2}$"
+      >
+      <p class="muted">از تقویم بازشونده استفاده کنید یا با فرمت سال/ماه/روز وارد کنید (مثال: 1404/11/25)</p>
 
       <label for="location">محل (اختیاری)</label>
       <input id="location" name="location" maxlength="120">
@@ -42,7 +51,7 @@
       <label for="description">توضیح کوتاه (اختیاری)</label>
       <textarea id="description" name="description" maxlength="600" rows="6"></textarea>
 
-      <input id="honeypot" name="website" class="hidden" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <input id="honeypot" name="website" class="ohnohoney" tabindex="-1" autocomplete="off" aria-hidden="true">
 
       <div class="cf-turnstile" data-sitekey="0x4AAAAAACb6R3pPJROPr3pB"></div>
 
@@ -50,7 +59,11 @@
       <p id="status" class="status" role="status" aria-live="polite"></p>
     </form>
   </main>
+  <link rel="stylesheet" href="https://unpkg.com/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://unpkg.com/persian-date@1.1.0/dist/persian-date.min.js"></script>
+  <script src="https://unpkg.com/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
   <script src="/assets/app.js" type="module"></script>
 </body>
 </html>
