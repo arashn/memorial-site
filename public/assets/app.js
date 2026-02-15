@@ -245,7 +245,20 @@ async function loadSubmissionCount() {
     const data = await res.json();
     const count = Number(data.submissions_count);
     if (!Number.isFinite(count) || count < 0) throw new Error("stats_invalid");
-    submissionCountLineEl.textContent = messages.submissions_count_label.replace("{count}", String(Math.floor(count)));
+    const countText = String(Math.floor(count));
+    const template = String(messages.submissions_count_label || "");
+    const parts = template.split("{count}");
+    if (parts.length >= 2) {
+      submissionCountLineEl.textContent = "";
+      submissionCountLineEl.append(document.createTextNode(parts[0]));
+      const countSpan = document.createElement("span");
+      countSpan.className = "stats-count";
+      countSpan.textContent = countText;
+      submissionCountLineEl.append(countSpan);
+      submissionCountLineEl.append(document.createTextNode(parts.slice(1).join("{count}")));
+    } else {
+      submissionCountLineEl.textContent = `${template} ${countText}`.trim();
+    }
   } catch {
     submissionCountLineEl.textContent = messages.submissions_count_unavailable;
   }

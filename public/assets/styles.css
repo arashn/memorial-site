@@ -100,6 +100,20 @@ button:disabled {
   color: var(--muted);
 }
 
+.stats-line {
+  margin: 0.9rem 0 1rem;
+  padding: 0.7rem 0.8rem;
+  border-inline-start: 4px solid var(--accent);
+  background: #fff2e9;
+  color: #4f1f18;
+  font-weight: 700;
+  border-radius: 8px;
+}
+
+.stats-count {
+  color: #b00020;
+}
+
 .status {
   margin-top: 0.75rem;
   min-height: 1rem;
