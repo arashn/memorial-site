@@ -5,6 +5,7 @@ const FORM_VERSION = "2026-01-01";
 const ENC_ALG = "x25519-aes-256-gcm-v1";
 const KEYSET_URL = "/keys/public-keyset.json";
 const STATS_URL = "/api/v1/stats";
+const MIN_PUBLIC_SUBMISSION_COUNT = 2000;
 
 const form = document.getElementById("submission-form");
 const statusEl = document.getElementById("status");
@@ -239,12 +240,17 @@ try {
 
 async function loadSubmissionCount() {
   if (!submissionCountLineEl) return;
+  submissionCountLineEl.style.display = "none";
   try {
     const res = await fetch(STATS_URL, { cache: "no-store" });
     if (!res.ok) throw new Error("stats_fetch_failed");
     const data = await res.json();
     const count = Number(data.submissions_count);
     if (!Number.isFinite(count) || count < 0) throw new Error("stats_invalid");
+    if (count < MIN_PUBLIC_SUBMISSION_COUNT) {
+      submissionCountLineEl.textContent = "";
+      return;
+    }
     const countText = String(Math.floor(count));
     const template = String(messages.submissions_count_label || "");
     const parts = template.split("{count}");
@@ -259,8 +265,9 @@ async function loadSubmissionCount() {
     } else {
       submissionCountLineEl.textContent = `${template} ${countText}`.trim();
     }
+    submissionCountLineEl.style.display = "block";
   } catch {
-    submissionCountLineEl.textContent = messages.submissions_count_unavailable;
+    submissionCountLineEl.textContent = "";
   }
 }
 
