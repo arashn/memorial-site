@@ -11,7 +11,7 @@ This blueprint defines a concrete, minimal implementation for this repository:
 ## Current Deployment State (As of February 13, 2026)
 - Completed:
   - Domain registered with registry lock.
-  - Cloudflare zone configured with DNSSEC and TLS strict mode.
+  - Cloudflare zone configured with DNSSEC, TLS strict mode, and HSTS.
   - Cloudflare Pages project deployed for static site.
   - Worker service deployed for `/api/v1/*`.
   - R2 bucket created (`memorial-site-submissions-encrypted-prod`).
@@ -19,7 +19,6 @@ This blueprint defines a concrete, minimal implementation for this repository:
   - Turnstile widget added and server-side verification implemented.
 - Pending / partial:
   - Hardware-key MFA for privileged accounts (not yet enabled).
-  - HSTS at zone level (not yet enabled).
   - Memorial publishing pipeline remains paused (memorial page disabled).
 
 ## 1) Repository Layout
@@ -294,7 +293,7 @@ Status updated: February 13, 2026.
 
 Infrastructure bootstrapping:
 - [ ] Register domain with registry lock and hardware-key MFA (partial: registry lock done; hardware-key MFA pending).
-- [ ] Configure Cloudflare zone, DNSSEC, TLS strict mode, HSTS (partial: DNSSEC + TLS strict done; HSTS pending).
+- [x] Configure Cloudflare zone, DNSSEC, TLS strict mode, HSTS.
 - [x] Create Cloudflare Pages project for static site.
 - [x] Create Worker service for `/api/v1/*`.
 - [x] Create R2 bucket `memorial-site-submissions-encrypted-prod`.
@@ -309,7 +308,7 @@ Application setup:
 - [x] Persist encrypted envelope objects only.
 
 Security hardening:
-- [ ] Set all required security headers (partial: app headers configured; zone-level HSTS pending).
+- [x] Set all required security headers.
 - [x] Enforce method and content-type allowlists.
 - [ ] Disable directory listing and default error leakage.
 - [ ] Remove third-party scripts and analytics.

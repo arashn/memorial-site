@@ -6,7 +6,7 @@ Build a very simple website (one or two pages) for families and relatives of vic
 ## Current Deployment State (As of February 13, 2026)
 - Completed:
   - Domain registered with registry lock.
-  - Cloudflare zone configured with DNSSEC and TLS strict mode.
+  - Cloudflare zone configured with DNSSEC, TLS strict mode, and HSTS.
   - Cloudflare Pages project deployed for static site.
   - Worker service deployed for `/api/v1/*`.
   - R2 bucket created (`memorial-site-submissions-encrypted-prod`).
@@ -14,7 +14,6 @@ Build a very simple website (one or two pages) for families and relatives of vic
   - Turnstile widget added and server-side verification implemented.
 - Pending / partial:
   - Hardware-key MFA for privileged accounts (not yet enabled).
-  - HSTS at zone level (not yet enabled).
   - Memorial publishing pipeline remains paused (memorial page disabled).
 
 ## Executive Summary
@@ -181,7 +180,7 @@ Status updated: February 13, 2026.
 - [x] Store only encrypted payloads.
 - [x] Establish offline decryption + verification workflow.
 - [ ] Create static memorial generation pipeline (currently paused while memorial publishing is disabled).
-- [ ] Add security headers and hardening (partial: strong headers configured; zone-level HSTS still pending).
+- [x] Add security headers and hardening.
 - [ ] Enforce hardware-key MFA for all privileged accounts (pending).
 - [ ] Write and test incident response runbook (runbook drafted; testing pending).
 
