@@ -25,6 +25,9 @@ type SubmissionEnvelope = {
 
 const FORM_VERSION = "2026-01-01";
 const ACCEPTED_ALGS = new Set(["x25519-aes-256-gcm-v1"]);
+const STATS_COUNT_KEY = "stats:submission_count";
+const STATS_SYNCED_AT_KEY = "stats:submission_count_synced_at";
+const STATS_REFRESH_INTERVAL_SECONDS = 300;
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
@@ -34,6 +37,11 @@ export default {
       if (url.pathname === "/api/v1/healthz") {
         if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
         return json({ status: "ok", environment: env.ENVIRONMENT || "unknown" }, 200);
+      }
+
+      if (url.pathname === "/api/v1/stats") {
+        if (request.method !== "GET") return json({ error: "method_not_allowed" }, 405);
+        return await handleStats(env);
       }
 
       if (url.pathname === "/api/v1/submissions") {
@@ -121,6 +129,9 @@ async function handleSubmission(request: Request, env: Env): Promise<Response> {
   const replayTtlSeconds = toPositiveInt(env.REPLAY_TTL_SECONDS, 86400);
   await env.REPLAY_KV.put(replayKey, "1", { expirationTtl: replayTtlSeconds });
 
+  // Best-effort cache update to keep stats endpoint fresh between scheduled refreshes.
+  await updateCachedSubmissionCount(env);
+
   return json(
     {
       status: "accepted",
@@ -128,6 +139,17 @@ async function handleSubmission(request: Request, env: Env): Promise<Response> {
       received_at: receivedAt
     },
     202
+  );
+}
+
+async function handleStats(env: Env): Promise<Response> {
+  const count = await getSubmissionCount(env);
+  return json(
+    {
+      submissions_count: count,
+      as_of: new Date().toISOString()
+    },
+    200
   );
 }
 
@@ -193,6 +215,46 @@ async function checkRateLimit(ip: string, env: Env): Promise<{ allowed: boolean;
 
   await env.RATE_LIMIT_KV.put(key, String(next), { expirationTtl: 120 });
   return { allowed: true, remaining: Math.max(0, limit - next) };
+}
+
+async function getSubmissionCount(env: Env): Promise<number> {
+  const now = Math.floor(Date.now() / 1000);
+  const syncedAtRaw = await env.RATE_LIMIT_KV.get(STATS_SYNCED_AT_KEY);
+  const syncedAt = Number(syncedAtRaw || "0");
+  const cachedRaw = await env.RATE_LIMIT_KV.get(STATS_COUNT_KEY);
+  const cached = Number(cachedRaw || "0");
+
+  if (Number.isFinite(cached) && now - syncedAt <= STATS_REFRESH_INTERVAL_SECONDS) {
+    return Math.max(0, Math.floor(cached));
+  }
+
+  const freshCount = await countSubmissionsInR2(env.SUBMISSIONS_BUCKET);
+  await env.RATE_LIMIT_KV.put(STATS_COUNT_KEY, String(freshCount), { expirationTtl: 7 * 24 * 3600 });
+  await env.RATE_LIMIT_KV.put(STATS_SYNCED_AT_KEY, String(now), { expirationTtl: 7 * 24 * 3600 });
+  return freshCount;
+}
+
+async function updateCachedSubmissionCount(env: Env): Promise<void> {
+  const now = Math.floor(Date.now() / 1000);
+  const cachedRaw = await env.RATE_LIMIT_KV.get(STATS_COUNT_KEY);
+  const cached = Number(cachedRaw || "0");
+  const next = Number.isFinite(cached) ? Math.max(0, Math.floor(cached) + 1) : 1;
+  await env.RATE_LIMIT_KV.put(STATS_COUNT_KEY, String(next), { expirationTtl: 7 * 24 * 3600 });
+  await env.RATE_LIMIT_KV.put(STATS_SYNCED_AT_KEY, String(now), { expirationTtl: 7 * 24 * 3600 });
+}
+
+async function countSubmissionsInR2(bucket: R2Bucket): Promise<number> {
+  let total = 0;
+  let cursor: string | undefined;
+
+  while (true) {
+    const page = await bucket.list({ cursor });
+    total += page.objects.length;
+    if (!page.truncated || !page.cursor) break;
+    cursor = page.cursor;
+  }
+
+  return total;
 }
 
 async function sha256Hex(input: string): Promise<string> {

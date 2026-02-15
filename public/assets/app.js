@@ -4,9 +4,11 @@ const API_URL = "/api/v1/submissions";
 const FORM_VERSION = "2026-01-01";
 const ENC_ALG = "x25519-aes-256-gcm-v1";
 const KEYSET_URL = "/keys/public-keyset.json";
+const STATS_URL = "/api/v1/stats";
 
 const form = document.getElementById("submission-form");
 const statusEl = document.getElementById("status");
+const submissionCountLineEl = document.getElementById("submission-count-line");
 const locale = getLocaleFromPath();
 let messages = {
   submit_rejected: "Submission rejected: check required fields and length limits.",
@@ -15,7 +17,9 @@ let messages = {
   too_many_requests: "Too many requests. Please wait and try again.",
   submit_failed: "Submission failed. Please try again later.",
   encryption_unavailable: "Secure encryption is unavailable in this browser. Please use a modern, updated browser.",
-  invalid_incident_date: "Invalid incident date format."
+  invalid_incident_date: "Invalid incident date format.",
+  submissions_count_label: "Submissions received so far: {count}",
+  submissions_count_unavailable: "Submission count is currently unavailable."
 };
 
 function setStatus(message) {
@@ -232,6 +236,22 @@ try {
 } catch {
   // Keep default English strings when locale file is unavailable.
 }
+
+async function loadSubmissionCount() {
+  if (!submissionCountLineEl) return;
+  try {
+    const res = await fetch(STATS_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error("stats_fetch_failed");
+    const data = await res.json();
+    const count = Number(data.submissions_count);
+    if (!Number.isFinite(count) || count < 0) throw new Error("stats_invalid");
+    submissionCountLineEl.textContent = messages.submissions_count_label.replace("{count}", String(Math.floor(count)));
+  } catch {
+    submissionCountLineEl.textContent = messages.submissions_count_unavailable;
+  }
+}
+
+void loadSubmissionCount();
 
 if (locale === "fa") {
   const jq = window.jQuery;

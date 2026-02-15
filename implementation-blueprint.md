@@ -85,6 +85,7 @@ Serve these static routes:
 API endpoints (Worker):
 - `POST /api/v1/submissions` (accept encrypted envelopes)
 - `GET /api/v1/healthz` (returns static health object, no secrets)
+- `GET /api/v1/stats` (returns cached aggregate counters for UI, no sensitive data)
 
 Do not expose any admin endpoints publicly.
 
@@ -178,6 +179,11 @@ Apply these controls in Worker:
 
 Never persist:
 - Raw IP (if possible), user-agent full string, plaintext form data.
+
+Submission count scalability pattern:
+- Do not scan primary submission storage on every page request.
+- Serve `GET /api/v1/stats` from a cached count value in KV.
+- Refresh the cached count from storage on a fixed interval (for example every 5 minutes), and optionally update cache on accepted submissions.
 
 ## 6) Required Response Headers
 Set on all static pages and API responses:

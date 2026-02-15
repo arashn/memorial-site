@@ -5,6 +5,8 @@
   "too_many_requests": "Too many requests. Please wait and try again.",
   "submit_failed": "Submission failed. Please try again later.",
   "invalid_incident_date": "Invalid incident date format.",
+  "submissions_count_label": "Submissions received so far: {count}",
+  "submissions_count_unavailable": "Submission count is currently unavailable.",
   "encryption_unavailable": "Secure encryption is unavailable in this browser. Please use a modern, updated browser.",
   "memorial_unavailable": "Memorial list is temporarily unavailable.",
   "status_killed": "Killed",
